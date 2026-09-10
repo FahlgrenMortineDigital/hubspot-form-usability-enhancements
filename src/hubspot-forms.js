@@ -2778,6 +2778,84 @@ const HubSpotFormManager = {
     });
   },
 
+  focusVisibleStepIntroduction(step) {
+    const stepContent = step.querySelector(".hsfc-Step__Content") || step;
+    const firstFormField = this.findFirstFormField(stepContent);
+    const firstFormControl = firstFormField?.matches("input, select, textarea")
+      ? firstFormField
+      : firstFormField?.querySelector("input, select, textarea");
+
+    if (!firstFormControl) {
+      return;
+    }
+
+    let focusAnchor = stepContent.querySelector(".hsfc-StepFocusAnchor");
+    if (!focusAnchor) {
+      focusAnchor = document.createElement("span");
+      focusAnchor.className = "hsfc-StepFocusAnchor";
+      focusAnchor.setAttribute("tabindex", "-1");
+      stepContent.insertBefore(focusAnchor, stepContent.firstChild);
+    }
+
+    const introductionElements = Array.from(
+      stepContent.querySelectorAll(
+        "h1, h2, h3, h4, h5, h6, p, .hsfc-RichText",
+      ),
+    ).filter((element) => {
+      if (element === focusAnchor || !element.textContent.trim()) {
+        return false;
+      }
+
+      if (
+        element.closest(
+          ".hsfc-ErrorAlert, .hsfc-CustomValidationError, .hsfc-ProgressBar, .hsfc-NavigationRow",
+        )
+      ) {
+        return false;
+      }
+
+      return Boolean(
+        element.compareDocumentPosition(firstFormControl) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    });
+
+    if (introductionElements.length === 0) {
+      return;
+    }
+
+    const heading = introductionElements.find((element) =>
+      /^H[1-6]$/.test(element.tagName),
+    );
+    const describedElements = heading
+      ? introductionElements.filter((element) => element !== heading)
+      : introductionElements;
+
+    if (heading) {
+      if (!heading.id) {
+        heading.id = `hsfc-step-heading-${Date.now()}`;
+      }
+      focusAnchor.setAttribute("aria-labelledby", heading.id);
+    } else {
+      focusAnchor.removeAttribute("aria-labelledby");
+      focusAnchor.setAttribute("aria-label", "Step introduction");
+    }
+
+    if (describedElements.length > 0) {
+      const describedIds = describedElements.map((element, index) => {
+        if (!element.id) {
+          element.id = `hsfc-step-description-${Date.now()}-${index}`;
+        }
+        return element.id;
+      });
+      focusAnchor.setAttribute("aria-describedby", describedIds.join(" "));
+    } else {
+      focusAnchor.removeAttribute("aria-describedby");
+    }
+
+    focusAnchor.focus({ preventScroll: true });
+  },
+
   handleVisibleStepChange(formContainer, cleanup) {
     const currentVisibleStep = cleanup.getVisibleStep();
 
@@ -2802,6 +2880,7 @@ const HubSpotFormManager = {
       if (this.mobileStepScrollResetConfig.enabled) {
         this.maybeResetScrollForStepChange(formContainer);
       }
+      this.focusVisibleStepIntroduction(currentVisibleStep);
     }
   },
 
