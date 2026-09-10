@@ -1092,8 +1092,6 @@ const ErrorMessageConfig = {
       file: "📎 File type not allowed. Please select a different file.",
       fileSize: "📁 File size exceeds {maxSize} limit",
       fileType: "📄 File type not allowed. Allowed types: {allowedTypes}",
-      fileReupload: "🔄 Please re-upload your file(s) to resubmit the form.",
-      fileReuploadStep: "🔄 Please re-upload your file(s) on step {step} to resubmit the form.",
       fileCount: "📎 Maximum {max} files allowed.",
       url: "🔗 Please enter a valid URL",
       number: "🔢 Please enter a valid number",
@@ -1224,11 +1222,10 @@ const HubSpotFormValidator = {
 
   // Size / count / type file errors are informational: the file input already
   // rejects those files, so a valid selection can still proceed. These must not
-  // block navigation or appear in the error summary. fileReupload is excluded
-  // here on purpose — it still blocks and is still summarized.
+  // block navigation or appear in the error summary.
   isSuppressibleFileError(errorElement) {
     const types = this.getFileErrorTypes(errorElement);
-    return types.length > 0 && !types.includes("fileReupload");
+    return types.length > 0;
   },
 
   getFileErrorInterpolationValues() {
@@ -1247,10 +1244,6 @@ const HubSpotFormValidator = {
     }
 
     const interpolationValues = this.getFileErrorInterpolationValues();
-
-    if (fileErrorTypes.includes("fileReupload")) {
-      return ErrorMessageConfig.getMessage("fileReupload");
-    }
 
     if (fileErrorTypes.includes("fileSize")) {
       return ErrorMessageConfig.getMessage("fileSize", {
@@ -1757,12 +1750,6 @@ const HubSpotFormValidator = {
         processedFieldGroups.add(field.name);
       }
 
-      // Skip file fields that are already represented by a re-upload notice
-      if (field.type === 'file' &&
-          field.parentElement?.querySelector('[data-hsfc-file-error-types*="fileReupload"]')) {
-        continue;
-      }
-
       // Check if field is invalid and not already in the error list
       if (
         isFieldInvalid(field) &&
@@ -1870,23 +1857,6 @@ const HubSpotFormValidator = {
           fieldLabel,
           description: `<span class="customValidationErrorLabel">${fieldLabel}:</span> <span class="customValidationErrorText">${errorMessage}</span>`,
           errorElement: null,
-        });
-      }
-    }
-
-    // Collect re-upload errors from file inputs on other steps (file may have been uploaded on an earlier panel)
-    if (formContainer) {
-      for (const fileInput of formContainer.querySelectorAll('input[type="file"]')) {
-        if (step.contains(fileInput)) continue;
-        const reuploadEl = fileInput.parentElement?.querySelector('[data-hsfc-file-error-types*="fileReupload"]');
-        if (!reuploadEl || fieldsWithErrors.some(f => f.field === fileInput)) continue;
-        const errorText = reuploadEl.textContent.trim();
-        const fieldLabel = this.getFieldLabel(fileInput) || `Field "${fileInput.name || fileInput.id || 'unknown'}"`;
-        fieldsWithErrors.push({
-          field: fileInput,
-          fieldLabel,
-          description: `<span class="customValidationErrorLabel">${fieldLabel}:</span> <span class="customValidationErrorText">${errorText}</span>`,
-          errorElement: reuploadEl,
         });
       }
     }
@@ -2542,14 +2512,6 @@ const HubSpotFormManager = {
       if (newText !== originalText) {
         errorElement.textContent = newText;
       }
-
-      if (HubSpotFormValidator.isSubmissionOrNetworkError(originalText)) {
-        const cleared = this.clearFilesOnSubmissionFailure(formContainer);
-        if (cleared) {
-          const currentStep = cleanup.getVisibleStep();
-          if (currentStep) HubSpotFormValidator.showValidationError(currentStep, formContainer);
-        }
-      }
     };
 
     // Replace any existing error messages on setup
@@ -2620,43 +2582,6 @@ const HubSpotFormManager = {
 
     // Track observer for cleanup
     cleanup.observers.push(errorObserver);
-  },
-
-  clearFilesOnSubmissionFailure(container) {
-    const fileInputs = container.querySelectorAll('input[type="file"]');
-    if (fileInputs.length === 0) return false;
-
-    const allSteps = Array.from(container.querySelectorAll('.hsfc-Step'));
-    const isMultiStep = allSteps.length > 1;
-
-    let clearedAny = false;
-    fileInputs.forEach(fileInput => {
-      const hasFiles = fileInput.files && fileInput.files.length > 0;
-      const acceptedEl = fileInput.parentElement?.querySelector('.hsfc-AcceptedFiles');
-      const hasAcceptedDisplay = !!(acceptedEl && acceptedEl.textContent.trim().length > 0);
-      if (!hasFiles && !hasAcceptedDisplay) return;
-      clearedAny = true;
-
-      let reuploadMessage;
-      if (isMultiStep) {
-        const parentStep = fileInput.closest('.hsfc-Step');
-        const stepNumber = parentStep ? allSteps.indexOf(parentStep) + 1 : null;
-        reuploadMessage = stepNumber
-          ? (ErrorMessageConfig.getMessage('fileReuploadStep', { step: stepNumber }) ||
-             `Please re-upload your file on step ${stepNumber} to resubmit the form.`)
-          : (ErrorMessageConfig.getMessage('fileReupload') ||
-             'Please re-upload your file to resubmit the form.');
-      } else {
-        reuploadMessage = ErrorMessageConfig.getMessage('fileReupload') ||
-          'Please re-upload your file to resubmit the form.';
-      }
-
-      FileUploadValidator.clearFileInput(fileInput);
-      FileUploadValidator.hideAcceptedFiles(fileInput);
-      FileUploadValidator.showError(fileInput, [reuploadMessage], [{ type: 'fileReupload' }]);
-    });
-
-    return clearedAny;
   },
 
   // Initialize Next button state
@@ -2949,11 +2874,6 @@ const HubSpotFormManager = {
 
       // Trigger individual field validations to show HubSpot's built-in error messages
       this.triggerFieldValidations(stepToValidate);
-
-      // Only clear uploaded files on a failed final submission, not on failed Next-step navigation
-      if (event.target.type === 'submit') {
-        this.clearFilesOnSubmissionFailure(formContainer);
-      }
 
       // Show custom error message
       HubSpotFormValidator.showValidationError(stepToValidate, formContainer);
