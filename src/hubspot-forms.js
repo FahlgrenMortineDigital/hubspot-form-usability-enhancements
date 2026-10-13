@@ -2703,16 +2703,14 @@ const HubSpotFormManager = {
     });
   },
 
-  focusVisibleStepIntroduction(step) {
+  focusVisibleStepIntroduction(step, previousStep = null) {
     const stepContent = step.querySelector(".hsfc-Step__Content") || step;
-    const firstFormField = this.findFirstFormField(stepContent);
-    const firstFormControl = firstFormField?.matches("input, select, textarea")
-      ? firstFormField
-      : firstFormField?.querySelector("input, select, textarea");
-
-    if (!firstFormControl) {
-      return;
-    }
+    const firstFormControl = Array.from(
+      stepContent.querySelectorAll('input:not([type="hidden"]), select, textarea'),
+    ).find((control) =>
+      !control.closest('[hidden], [aria-hidden="true"]') &&
+      control.getClientRects().length > 0,
+    );
 
     let focusAnchor = stepContent.querySelector(".hsfc-StepFocusAnchor");
     if (!focusAnchor) {
@@ -2733,22 +2731,40 @@ const HubSpotFormManager = {
 
       if (
         element.closest(
-          ".hsfc-ErrorAlert, .hsfc-CustomValidationError, .hsfc-ProgressBar, .hsfc-NavigationRow",
-        )
+          '.hsfc-ErrorAlert, .hsfc-CustomValidationError, .hsfc-ProgressBar, .hsfc-NavigationRow, .hsfc-FieldDescription, .hsfc-FieldLabel, .hsfc-FormField, .hs-form-field, [data-hsfc-id$="Field"], [hidden], [aria-hidden="true"]',
+        ) ||
+        element.querySelector("input, select, textarea") ||
+        element.getClientRects().length === 0
       ) {
         return false;
       }
 
-      return Boolean(
+      return !firstFormControl || Boolean(
         element.compareDocumentPosition(firstFormControl) &
           Node.DOCUMENT_POSITION_FOLLOWING,
       );
     });
 
     if (introductionElements.length === 0) {
+      let announcement = "Form step changed";
+      const position = previousStep?.compareDocumentPosition(step) || 0;
+      if (!(position & Node.DOCUMENT_POSITION_DISCONNECTED)) {
+        if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+          announcement = "Form step advanced";
+        } else if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+          announcement = "Returned to previous form step";
+        }
+      }
+
+      focusAnchor.removeAttribute("aria-labelledby");
+      focusAnchor.removeAttribute("aria-describedby");
+      focusAnchor.setAttribute("role", "group");
+      focusAnchor.setAttribute("aria-label", announcement);
+      focusAnchor.focus({ preventScroll: true });
       return;
     }
 
+    focusAnchor.removeAttribute("role");
     const heading = introductionElements.find((element) =>
       /^H[1-6]$/.test(element.tagName),
     );
@@ -2760,6 +2776,7 @@ const HubSpotFormManager = {
       if (!heading.id) {
         heading.id = `hsfc-step-heading-${Date.now()}`;
       }
+      focusAnchor.removeAttribute("aria-label");
       focusAnchor.setAttribute("aria-labelledby", heading.id);
     } else {
       focusAnchor.removeAttribute("aria-labelledby");
@@ -2805,7 +2822,7 @@ const HubSpotFormManager = {
       if (this.mobileStepScrollResetConfig.enabled) {
         this.maybeResetScrollForStepChange(formContainer);
       }
-      this.focusVisibleStepIntroduction(currentVisibleStep);
+      this.focusVisibleStepIntroduction(currentVisibleStep, previousVisibleStep);
     }
   },
 
