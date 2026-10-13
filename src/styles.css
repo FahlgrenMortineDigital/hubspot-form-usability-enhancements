@@ -133,7 +133,6 @@
   --color-hs-form-progress-bar-border:var(--color-hs-form-neutral);
   --color-hs-form-progress-bar-fill:var(--color-hs-form-primary);
 
-  --color-hs-form-attention:var(--color-hs-form-attention);
   --color-hs-form-error-message:var(--color-hs-form-error);
   --color-hs-form-error-box-bg:var(--color-hs-form-error-lt);
   --color-hs-form-error-box-text:var(--color-hs-form-error-dk);
@@ -192,7 +191,6 @@
   --color-hs-form-reverse-link:var(--color-hs-form-white);
   --color-hs-form-reverse-field-bg:var(--color-hs-form-white);
   --color-hs-form-reverse-field-checked-bg:var(--color-hs-form-neutral-hlt);
-  --color-hs-form-reverse-field-focus-outline:var(--color-hs-form-focus-outline);
   --color-hs-form-reverse-progress-bar-bg:var(--color-hs-form-white);
   --color-hs-form-reverse-progress-bar-border:var(--color-hs-form-neutral-lt);
   --color-hs-form-reverse-progress-bar-fill:var(--color-hs-form-neutral-lt);
