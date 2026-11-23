@@ -223,6 +223,18 @@
   --color-hs-form-reverse-postsubmit-link:var(--color-hs-form-white);
 
   --color-hs-form-reverse-field-focus-outline:var(--color-hs-form-primary-lt);
+
+  /* Reverse date picker panel: a dark panel with light text, selected day inverted like the reverse buttons. */
+  --color-hs-form-reverse-datepicker-bg:var(--color-hs-form-neutral-dk);
+  --color-hs-form-reverse-datepicker-border:var(--color-hs-form-white);
+  --color-hs-form-reverse-datepicker-text:var(--color-hs-form-white);
+  --color-hs-form-reverse-datepicker-muted-text:var(--color-hs-form-neutral-lt);
+  --color-hs-form-reverse-datepicker-day-hover-bg:var(--color-hs-form-primary);
+  --color-hs-form-reverse-datepicker-day-hover-text:var(--color-hs-form-white);
+  --color-hs-form-reverse-datepicker-day-selected-bg:var(--color-hs-form-white);
+  --color-hs-form-reverse-datepicker-day-selected-text:var(--color-hs-form-primary-dk);
+  --color-hs-form-reverse-datepicker-day-selected-hover-bg:var(--color-hs-form-primary-lt);
+  --color-hs-form-reverse-datepicker-today-border:var(--color-hs-form-white);
 }
 
 
@@ -492,11 +504,11 @@ div[data-hsfc-id=Renderer] {
         & .hsfc-DatePickerField__dropdowns { display:flex; flex-wrap:wrap; gap:0.5rem; }
         & .hsfc-DatePickerField__dropdown-root {
           position:relative; display:inline-flex; align-items:center;
-          &::after { content:''; position:absolute; top:50%; right:0.625rem; width:1rem; height:1rem; margin-top:-0.5rem; background:var(--color-hs-form-selectlist-caret-color) no-repeat center/contain; mask-image:var(--icon-hs-form-caret); -webkit-mask-image:var(--icon-hs-form-caret); pointer-events:none; }
+          &::after { content:''; position:absolute; top:50%; right:0.625rem; width:1rem; height:1rem; margin-top:-0.5rem; background:var(--color-hs-form-datepicker-text) no-repeat center/contain; mask-image:var(--icon-hs-form-caret); -webkit-mask-image:var(--icon-hs-form-caret); pointer-events:none; }
           & .hsfc-DatePickerField__caption-label { display:none; } /* aria-hidden duplicate of the select's value */
         }
         & .hsfc-DatePickerField__dropdown {
-          appearance:none; -webkit-appearance:none; width:auto; height:2.5rem; margin:0; padding:0.25rem 2rem 0.25rem 0.75rem; border-color:var(--color-hs-form-datepicker-border); cursor:pointer; font-size:var(--font-hs-form-label-size); line-height:1.25; color:var(--color-hs-form-datepicker-text);
+          appearance:none; -webkit-appearance:none; width:auto; height:2.5rem; margin:0; padding:0.25rem 2rem 0.25rem 0.75rem; border-color:var(--color-hs-form-datepicker-border); background-color:var(--color-hs-form-datepicker-bg); cursor:pointer; font-size:var(--font-hs-form-label-size); line-height:1.25; color:var(--color-hs-form-datepicker-text);
         }
 
         /* Month change. react-day-picker keeps the outgoing month in the DOM (aria-hidden clone) until an
@@ -841,15 +853,22 @@ div[data-hsfc-id=Renderer] {
             outline-color: var(--color-hs-form-reverse-field-focus-outline, var(--color-hs-form-primary-lt));
           }
         }
-        /* The date picker panel stays light on reverse forms, so keep its dark focus ring. */
+        /* Date picker panel on reverse forms: re-point the panel's tokens, then fix the generic reverse
+           select rule above (white background) that would otherwise win inside the panel. */
         & .hsfc-DatePickerField {
-          & button, & select {
-            &:focus, &:focus-visible {
-              outline-color: var(--color-hs-form-field-focus-outline, var(--color-hs-form-primary-dk));
-            }
-          }
+          --color-hs-form-datepicker-bg:var(--color-hs-form-reverse-datepicker-bg);
+          --color-hs-form-datepicker-border:var(--color-hs-form-reverse-datepicker-border);
+          --color-hs-form-datepicker-text:var(--color-hs-form-reverse-datepicker-text);
+          --color-hs-form-datepicker-muted-text:var(--color-hs-form-reverse-datepicker-muted-text);
+          --color-hs-form-datepicker-day-hover-bg:var(--color-hs-form-reverse-datepicker-day-hover-bg);
+          --color-hs-form-datepicker-day-hover-text:var(--color-hs-form-reverse-datepicker-day-hover-text);
+          --color-hs-form-datepicker-day-selected-bg:var(--color-hs-form-reverse-datepicker-day-selected-bg);
+          --color-hs-form-datepicker-day-selected-text:var(--color-hs-form-reverse-datepicker-day-selected-text);
+          --color-hs-form-datepicker-day-selected-hover-bg:var(--color-hs-form-reverse-datepicker-day-selected-hover-bg);
+          --color-hs-form-datepicker-today-border:var(--color-hs-form-reverse-datepicker-today-border);
+          & select { background-color:var(--color-hs-form-datepicker-bg); color:var(--color-hs-form-datepicker-text); }
           & .hsfc-DatePickerField__day--selected .rdp-day_button:focus-visible, & [data-selected] .rdp-day_button:focus-visible {
-            outline-color: var(--color-hs-form-white);
+            outline-color:var(--color-hs-form-primary-dk);
           }
         }
       }

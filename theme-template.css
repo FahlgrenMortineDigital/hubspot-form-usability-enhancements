@@ -236,6 +236,18 @@
   /* --color-hs-form-reverse-field-checked-bg: var(--color-hs-form-neutral-lt); */
   /* --color-hs-form-reverse-field-focus-outline: var(--color-hs-form-primary-lt); */
 
+  /* Reverse date picker panel (dark panel). Text pairs meet WCAG AA (4.5:1); keep that if you override. */
+  /* --color-hs-form-reverse-datepicker-bg: var(--color-hs-form-neutral-dk); */
+  /* --color-hs-form-reverse-datepicker-border: var(--color-hs-form-white); */
+  /* --color-hs-form-reverse-datepicker-text: var(--color-hs-form-white); */
+  /* --color-hs-form-reverse-datepicker-muted-text: var(--color-hs-form-neutral-lt); */
+  /* --color-hs-form-reverse-datepicker-day-hover-bg: var(--color-hs-form-primary); */
+  /* --color-hs-form-reverse-datepicker-day-hover-text: var(--color-hs-form-white); */
+  /* --color-hs-form-reverse-datepicker-day-selected-bg: var(--color-hs-form-white); */
+  /* --color-hs-form-reverse-datepicker-day-selected-text: var(--color-hs-form-primary-dk); */
+  /* --color-hs-form-reverse-datepicker-day-selected-hover-bg: var(--color-hs-form-primary-lt); */
+  /* --color-hs-form-reverse-datepicker-today-border: var(--color-hs-form-white); */
+
   /* Progress bar */
   /* --color-hs-form-reverse-progress-bar-bg: var(--color-hs-form-white); */
   /* --color-hs-form-reverse-progress-bar-border: var(--color-hs-form-neutral-lt); */

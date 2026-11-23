@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Date picker panel styling and accessibility** — HubSpot's new `.hsfc-DatePickerField` calendar was unstyled. It now matches the form theme (new `--color-hs-form-datepicker-*` variables, listed in `theme-template.css`), meets WCAG AA contrast, and keeps 40px+ touch targets. Script adds `role="dialog"` and a name to the panel, `aria-haspopup`/`aria-expanded`/`aria-controls` on the input, `aria-selected` and `aria-current="date"` on days, returns focus to the input after a date is chosen or Escape is pressed, closes the panel when focus tabs out of it, and reopens it with Alt+ArrowDown
+- **Reverse-form date picker** — on `.hs-form-reverse` forms the panel is dark with light text and an inverted selected day (new `--color-hs-form-reverse-datepicker-*` variables)
+- **Date picker month changes** — added short fade animations so react-day-picker removes the outgoing month (it was staying in the DOM, duplicating the month/year selects and day grid in the Tab order)
 - **Theme template file** (`theme-template.css`) — copy-ready file with all CSS variables organized by component, published with the package
 - **CSS Variables Reference** in README with collapsible sections showing cascade relationships
 - **`.nvmrc`** file specifying Node 24.14.1
