@@ -3596,7 +3596,7 @@ const HubSpotFormManager = {
   //   - role="dialog" + accessible name on the panel; aria-haspopup/expanded/controls on the input
   //   - aria-selected on the chosen day and aria-current="date" on today
   //   - focus returns to the input after a day is chosen or Escape is pressed (it otherwise drops to <body>)
-  //   - the panel closes when focus tabs out of it (it otherwise stays open over later fields)
+  //   - Tab cycles inside the open panel; the panel closes if focus leaves it by other means (it otherwise stays open over later fields)
   //   - Alt+ArrowDown on the input reopens a dismissed panel
   setupDatePickerAccessibility(formContainer, cleanup) {
     const signal = cleanup.abortController.signal;
@@ -3648,6 +3648,39 @@ const HubSpotFormManager = {
         input.setAttribute("aria-controls", panel.id);
       }
 
+      // Keep Tab inside the open panel (dialog pattern). The day grid is the last
+      // tab stop, so without this Tab from the grid leaves the panel and closes it.
+      // Escape, or choosing a date, is how the panel is left.
+      panel.addEventListener(
+        "keydown",
+        (event) => {
+          if (event.key !== "Tab") {
+            return;
+          }
+          const stops = Array.from(
+            panel.querySelectorAll("button, select, [tabindex]"),
+          ).filter(
+            (el) =>
+              !el.disabled &&
+              el.tabIndex >= 0 &&
+              !el.closest('[aria-hidden="true"], [inert]') &&
+              getComputedStyle(el).visibility !== "hidden",
+          );
+          if (!stops.length) {
+            return;
+          }
+          const first = stops[0];
+          const last = stops[stops.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        },
+        { signal },
+      );
       panel.addEventListener(
         "keydown",
         (event) => {
