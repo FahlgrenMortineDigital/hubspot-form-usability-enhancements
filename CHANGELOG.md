@@ -7,11 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-23
+
 ### Added
 
-- **Date picker panel styling and accessibility** — HubSpot's new `.hsfc-DatePickerField` calendar was unstyled. It now matches the form theme (new `--color-hs-form-datepicker-*` variables, listed in `theme-template.css`), meets WCAG AA contrast, and keeps 40px+ touch targets. Script adds `role="dialog"` and a name to the panel, `aria-haspopup`/`aria-expanded`/`aria-controls` on the input, `aria-selected` and `aria-current="date"` on days, returns focus to the input after a date is chosen or Escape is pressed, closes the panel when focus tabs out of it, and reopens it with Alt+ArrowDown
-- **Reverse-form date picker** — on `.hs-form-reverse` forms the panel is dark with light text and an inverted selected day (new `--color-hs-form-reverse-datepicker-*` variables)
-- **Date picker month changes** — added short fade animations so react-day-picker removes the outgoing month (it was staying in the DOM, duplicating the month/year selects and day grid in the Tab order)
+- **Date picker panel styling** — HubSpot's new `.hsfc-DatePickerField` calendar shipped unstyled. It now matches the form theme, meets WCAG AA contrast (text 4.5:1, borders and focus rings 3:1), and uses 40px+ targets (44px on touch). New `--color-hs-form-datepicker-*` and `--size-hs-form-datepicker-day` variables, listed in `theme-template.css`.
+- **Date picker accessibility script** — `role="dialog"` and an accessible name on the panel; `aria-haspopup`, `aria-expanded` and `aria-controls` on the input; `aria-selected` on the chosen day and `aria-current="date"` on today. Tab and Shift+Tab cycle inside the open panel. Focus returns to the input after a date is chosen or Escape is pressed (it previously dropped to `<body>`). Alt+ArrowDown reopens a dismissed panel. The panel closes if focus leaves it by other means.
+- **Reverse-form date picker** — on `.hs-form-reverse` forms the panel is dark with light text and an inverted selected day. New `--color-hs-form-reverse-datepicker-*` variables.
+
+### Fixed
+
+- **Date picker month changes** — react-day-picker kept the outgoing month in the DOM because its exit animation was never defined, which duplicated the month and year selects and the day grid in the Tab order. Short enter/exit animations now let it remove the old month; reduced-motion users get a 1ms duration so the removal still fires.
+
+### Upgrade notes
+
+- If you self-host the files (for example in the HubSpot file manager), upload `styles.css` and `index.cdn.js` together. The new JS depends on the new CSS for the month-change fix.
+- Static assets served from a CDN or file manager are typically cached for days. Version the asset URLs (`styles.css?v=1.4.0`) so visitors pick up the change.
+
+## [1.1.0] – [1.3.1]
+
+Changes accumulated across the 1.1.0 through 1.3.1 releases. They were not itemised per release at the time, so they are grouped here.
+
+### Added
+
 - **Theme template file** (`theme-template.css`) — copy-ready file with all CSS variables organized by component, published with the package
 - **CSS Variables Reference** in README with collapsible sections showing cascade relationships
 - **`.nvmrc`** file specifying Node 24.14.1
@@ -85,7 +103,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic HubSpot form detection and enhancement
 - Character limit enforcement
 
-[Unreleased]: https://github.com/FahlgrenMortineDigital/hubspot-form-usability-enhancements/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/FahlgrenMortineDigital/hubspot-form-usability-enhancements/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/FahlgrenMortineDigital/hubspot-form-usability-enhancements/compare/v1.3.1...v1.4.0
 [1.0.1]: https://github.com/FahlgrenMortineDigital/hubspot-form-usability-enhancements/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/FahlgrenMortineDigital/hubspot-form-usability-enhancements/compare/v0.1.0-alpha.1...v1.0.0
 [0.1.0-alpha.1]: https://github.com/FahlgrenMortineDigital/hubspot-form-usability-enhancements/compare/v0.1.0-alpha.0...v0.1.0-alpha.1

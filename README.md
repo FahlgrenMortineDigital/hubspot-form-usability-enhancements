@@ -11,6 +11,7 @@ This package ships pre-compiled CSS. Consumers do not need Tailwind, PostCSS, or
 - Character counters and character-limit messaging
 - Progress-bar repositioning for better step UX
 - Dark-background support via hs-form-reverse
+- Styled, keyboard-accessible date picker panel, including on reverse forms
 - React and SSR-safe initialization pattern
 
 ## Installation
