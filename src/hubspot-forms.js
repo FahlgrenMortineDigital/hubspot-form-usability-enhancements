@@ -2483,6 +2483,9 @@ const HubSpotFormManager = {
     // Setup dropdown accessibility for WCAG compliance
     this.setupDropdownAccessibility(formContainer, cleanup);
 
+    // Setup date picker panel accessibility (roles, focus return, dismissal)
+    this.setupDatePickerAccessibility(formContainer, cleanup);
+
     // Setup progress bar repositioning for the first form only
     this.setupProgressBarRepositioning(formContainer, cleanup);
 
@@ -3584,6 +3587,183 @@ const HubSpotFormManager = {
       },
       { signal: cleanup.abortController.signal },
     );
+  },
+
+  // Date picker panel accessibility.
+  // HubSpot renders .hsfc-DatePickerField (react-day-picker) when a date input
+  // takes focus. Native behavior already covers arrow keys, PageUp/PageDown,
+  // Home/End, Enter and Escape inside the grid. This adds what it leaves out:
+  //   - role="dialog" + accessible name on the panel; aria-haspopup/expanded/controls on the input
+  //   - aria-selected on the chosen day and aria-current="date" on today
+  //   - focus returns to the input after a day is chosen or Escape is pressed (it otherwise drops to <body>)
+  //   - the panel closes when focus tabs out of it (it otherwise stays open over later fields)
+  //   - Alt+ArrowDown on the input reopens a dismissed panel
+  setupDatePickerAccessibility(formContainer, cleanup) {
+    const signal = cleanup.abortController.signal;
+    const PICKER = ".hsfc-DatePickerField";
+    const INPUT = ".hsfc-DateInput";
+
+    let picker = null;
+    let input = null;
+    let restoreFocusOnClose = false;
+    let suppressOpenOnFocus = false;
+
+    const findInput = (panel) =>
+      panel.parentElement?.querySelector(INPUT) ||
+      panel.closest(".hsfc-Row")?.querySelector(INPUT) ||
+      null;
+
+    // Keep ARIA state in step with react-day-picker, which re-renders on navigation.
+    const syncDayState = (panel) => {
+      panel.querySelectorAll("td[data-day]").forEach((cell) => {
+        if (cell.hasAttribute("data-selected")) {
+          cell.setAttribute("aria-selected", "true");
+        } else {
+          cell.removeAttribute("aria-selected");
+        }
+        const button = cell.querySelector("button");
+        if (button) {
+          if (cell.hasAttribute("data-today")) {
+            button.setAttribute("aria-current", "date");
+          } else {
+            button.removeAttribute("aria-current");
+          }
+        }
+      });
+    };
+
+    const onOpen = (panel) => {
+      picker = panel;
+      input = findInput(panel);
+      restoreFocusOnClose = false;
+
+      panel.setAttribute("role", "dialog");
+      panel.setAttribute("aria-label", "Choose date");
+      if (!panel.id) {
+        panel.id = `${input?.id || "hsfc-date"}-picker`;
+      }
+      if (input) {
+        input.setAttribute("aria-haspopup", "dialog");
+        input.setAttribute("aria-expanded", "true");
+        input.setAttribute("aria-controls", panel.id);
+      }
+
+      panel.addEventListener(
+        "keydown",
+        (event) => {
+          if (
+            event.key === "Escape" ||
+            ((event.key === "Enter" || event.key === " ") &&
+              event.target.closest?.(".rdp-day_button"))
+          ) {
+            restoreFocusOnClose = true;
+          }
+        },
+        { signal },
+      );
+      panel.addEventListener(
+        "click",
+        (event) => {
+          if (event.target.closest?.(".rdp-day_button")) {
+            restoreFocusOnClose = true;
+          }
+        },
+        { signal },
+      );
+    };
+
+    const onClose = () => {
+      if (input) {
+        input.setAttribute("aria-expanded", "false");
+        input.removeAttribute("aria-controls");
+        const focusLost =
+          !document.activeElement || document.activeElement === document.body;
+        if (restoreFocusOnClose && focusLost) {
+          // Refocusing the input would reopen the panel, so swallow that one focus.
+          suppressOpenOnFocus = true;
+          input.focus();
+          suppressOpenOnFocus = false;
+        }
+      }
+      picker = null;
+      restoreFocusOnClose = false;
+    };
+
+    // Dismiss when focus leaves both the panel and its input (WCAG 2.4.11: an
+    // open panel must not sit over the next field a keyboard user reaches).
+    formContainer.addEventListener(
+      "focusout",
+      (event) => {
+        const next = event.relatedTarget;
+        if (
+          !picker ||
+          !next ||
+          (event.target !== input && !picker.contains(event.target)) ||
+          picker.contains(next) ||
+          next === input
+        ) {
+          return;
+        }
+        // Escape runs HubSpot's own close path. It also returns focus to the
+        // input, so send focus on to where the user was heading.
+        document.dispatchEvent(
+          new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+        );
+        requestAnimationFrame(() => {
+          if (document.activeElement !== next) {
+            next.focus();
+          }
+        });
+      },
+      { signal },
+    );
+
+    // Runs before HubSpot's focus handler (window capture), so the panel stays closed.
+    window.addEventListener(
+      "focusin",
+      (event) => {
+        if (suppressOpenOnFocus && event.target === input) {
+          event.stopImmediatePropagation();
+        }
+      },
+      { capture: true, signal },
+    );
+
+    // Alt+ArrowDown on the input reopens a panel that was dismissed with Escape.
+    // Plain ArrowUp/ArrowDown belong to HubSpot's date mask (it steps the segment),
+    // so only the Alt chord is claimed, and it is stopped before HubSpot sees it.
+    formContainer.addEventListener(
+      "keydown",
+      (event) => {
+        const target = event.target;
+        if (
+          event.key === "ArrowDown" &&
+          event.altKey &&
+          target?.matches?.(INPUT) &&
+          !formContainer.querySelector(PICKER)
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          target.blur();
+          target.focus();
+        }
+      },
+      { capture: true, signal },
+    );
+
+    const observer = new MutationObserver(() => {
+      const current = formContainer.querySelector(PICKER);
+      if (current && current !== picker) {
+        onOpen(current);
+      } else if (!current && picker) {
+        onClose();
+      }
+      if (current) {
+        syncDayState(current);
+      }
+    });
+    observer.observe(formContainer, { childList: true, subtree: true });
+    cleanup.observers.push(observer);
   },
 
   // Helper method to detect if a dropdown is phone-related

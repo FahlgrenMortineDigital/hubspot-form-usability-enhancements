@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Date picker panel styling and accessibility** — HubSpot's new `.hsfc-DatePickerField` calendar was unstyled. It now matches the form theme (new `--color-hs-form-datepicker-*` variables, listed in `theme-template.css`), meets WCAG AA contrast, and keeps 40px+ touch targets. Script adds `role="dialog"` and a name to the panel, `aria-haspopup`/`aria-expanded`/`aria-controls` on the input, `aria-selected` and `aria-current="date"` on days, returns focus to the input after a date is chosen or Escape is pressed, closes the panel when focus tabs out of it, and reopens it with Alt+ArrowDown
 - **Theme template file** (`theme-template.css`) — copy-ready file with all CSS variables organized by component, published with the package
 - **CSS Variables Reference** in README with collapsible sections showing cascade relationships
 - **`.nvmrc`** file specifying Node 24.14.1

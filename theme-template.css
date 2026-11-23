@@ -146,6 +146,20 @@
   /* --color-hs-form-selectlist-border: var(--color-hs-form-neutral-lt); */
   /* --color-hs-form-selectlist-caret-color: var(--color-hs-form-neutral-dk); */
 
+  /* ----- Date picker panel (HubSpot's .hsfc-DatePickerField) -----
+     Text pairs meet WCAG AA (4.5:1) on the panel background; keep that if you override. */
+  /* --color-hs-form-datepicker-bg: var(--color-hs-form-selectlist-bg); */
+  /* --color-hs-form-datepicker-border: var(--color-hs-form-neutral); */
+  /* --color-hs-form-datepicker-text: var(--color-hs-form-neutral-dk); */
+  /* --color-hs-form-datepicker-muted-text: var(--color-hs-form-neutral); */
+  /* --color-hs-form-datepicker-day-hover-bg: var(--color-hs-form-primary-lt); */
+  /* --color-hs-form-datepicker-day-hover-text: var(--color-hs-form-neutral-dk); */
+  /* --color-hs-form-datepicker-day-selected-bg: var(--color-hs-form-primary); */
+  /* --color-hs-form-datepicker-day-selected-text: var(--color-hs-form-white); */
+  /* --color-hs-form-datepicker-day-selected-hover-bg: var(--color-hs-form-primary-dk); */
+  /* --color-hs-form-datepicker-today-border: var(--color-hs-form-primary-dk); */
+  /* --size-hs-form-datepicker-day: 2.5rem; */
+
   /* List items */
   /* --color-hs-form-selectlist-item-bg: var(--color-hs-form-white); */
   /* --color-hs-form-selectlist-item-text: var(--color-hs-form-neutral); */
